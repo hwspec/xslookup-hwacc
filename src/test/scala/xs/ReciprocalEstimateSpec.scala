@@ -1,7 +1,10 @@
+// SPDX-License-Identifier: BSD-3-Clause
+// Copyright (c) 2025, UChicago Argonne, LLC.
+// Main author: Kazutomo Yoshii <kazutomo@anl.gov>. See LICENSE in project root.
+
 package xs
 
-//import chisel3.simulator.ChiselSim
-import chisel3.simulator.EphemeralSimulator._
+import chisel3.simulator.ChiselSim
 
 import org.scalatest.flatspec.AnyFlatSpec
 import xs.FPBigIntUtil._
@@ -99,7 +102,7 @@ object ReciprocalEstimateSW {
 
 
 
-class ReciprocalEstimateSpec extends AnyFlatSpec /*with ChiselSim*/ {
+class ReciprocalEstimateSpec extends AnyFlatSpec with ChiselSim {
   behavior of "ReciprocalEstimate"
 
   "basic test" should "pass" in {

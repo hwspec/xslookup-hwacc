@@ -1,19 +1,17 @@
+// SPDX-License-Identifier: BSD-3-Clause
+// Copyright (c) 2025, UChicago Argonne, LLC.
+// Main author: Kazutomo Yoshii <kazutomo@anl.gov>. See LICENSE in project root.
 
 package xs
 
-//import chisel3._
-//import chisel3.simulator.ChiselSim
-import chisel3.simulator.EphemeralSimulator._
-//import chisel3.simulator.VCDHackedEphemeralSimulator._
-
-//import vcdhack.DefaultSimulator._
+import chisel3.simulator.ChiselSim
 
 import org.scalatest.flatspec.AnyFlatSpec
 import xs.FPBigIntUtil._
 
 import scala.util.Random
 
-class FPComparatorSimSpec extends AnyFlatSpec /* with ChiselSim */ {
+class FPComparatorSimSpec extends AnyFlatSpec with ChiselSim {
   behavior of "FPComparator"
 
   "Random test: GTEQ" should "pass" in {

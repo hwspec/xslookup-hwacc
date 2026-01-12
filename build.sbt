@@ -7,7 +7,6 @@ ThisBuild / organization     := "kzt.me"
 val chiselVersion = "7.6.0"
 val scalatestVersion = "3.2.18"
 
-
 lazy val root = (project in file("."))
   .settings(
     name := "xskernel-chisel",
@@ -38,4 +37,3 @@ lazy val root = (project in file("."))
     ),
     addCompilerPlugin("org.chipsalliance" % "chisel-plugin" % chiselVersion cross CrossVersion.full),
   )
-

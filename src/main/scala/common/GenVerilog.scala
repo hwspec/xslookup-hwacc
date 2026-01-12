@@ -1,3 +1,7 @@
+// SPDX-License-Identifier: BSD-3-Clause
+// Copyright (c) 2025, UChicago Argonne, LLC.
+// Main author: Kazutomo Yoshii <kazutomo@anl.gov>. See LICENSE in project root.
+
 package common
 
 import chisel3._

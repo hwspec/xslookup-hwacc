@@ -1,10 +1,14 @@
+// SPDX-License-Identifier: BSD-3-Clause
+// Copyright (c) 2025, UChicago Argonne, LLC.
+// Main author: Kazutomo Yoshii <kazutomo@anl.gov>. See LICENSE in project root.
+
 package xs
-import chisel3.simulator.EphemeralSimulator._
+import chisel3.simulator.ChiselSim
 import org.scalatest.flatspec.AnyFlatSpec
 
 import scala.util.Random
 
-class InterpolationSpec extends AnyFlatSpec {
+class InterpolationSpec extends AnyFlatSpec with ChiselSim {
   behavior of "Interpolation"
 
   val rng = new Random(123)

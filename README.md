@@ -15,6 +15,17 @@ We recommend LTS releases Java 8 and Java 11. You can install the JDK as recomme
 
 SBT is the most common built tool in the Scala community. You can download it [here](https://www.scala-sbt.org/download.html).  
 
+#### Verilator
+
+Tested with v5.010
+
+git clone https://github.com/verilator/verilator.git && cd verilator
+git checkout tags/v5.010  -b v5.010build
+autoconf
+./configure --prefix=__INSTALLDIR__  # replace __INSTALLDIR__
+make
+make install
+
 #### Note:
 
 With a small problem:
