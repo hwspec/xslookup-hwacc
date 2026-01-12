@@ -4,7 +4,7 @@ on: [push]
 
 jobs:
   ci:
-    if: ${{ false }}
+#    if: ${{ false }}
     name: ci
     runs-on: ubuntu-latest
     steps:
