@@ -1,0 +1,32 @@
+name: Continuous Integration
+
+on: [push]
+
+jobs:
+  ci:
+    if: ${{ false }}
+    name: ci
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Install Z3 package
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y z3   
+      - name: Setup Scala
+        uses: olafurpg/setup-scala@v10
+        with:
+          java-version: adopt@1.8
+      - name: Cache Scala
+        uses: coursier/cache-action@v5
+      - name: Initialize submodule
+        run: |
+          git submodule init
+          git submodule update
+#      - name: Workaround for hardfloat
+#        run: sh prephardfloat.sh
+      - name: Install Verilator
+        run: sudo apt-get install -y verilator gcc
+      - name: SBT Test
+        run: sbt test

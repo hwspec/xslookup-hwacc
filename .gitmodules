@@ -1,0 +1,6 @@
+[submodule "berkeley-hardfloat"]
+	path = berkeley-hardfloat
+	url = https://github.com/ucb-bar/berkeley-hardfloat.git
+[submodule "rial-tmpfix"]
+	path = rial-tmpfix
+	url = https://github.com/hwspec/rial-tmpfix.git
