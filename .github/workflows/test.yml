@@ -9,23 +9,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
-      - name: Install Z3 package
+        uses: actions/checkout@v4
+      - name: Update
         run: |
-          sudo apt-get update
-          sudo apt-get install -y z3   
-      - name: Setup Scala
-        uses: olafurpg/setup-scala@v10
-        with:
-          java-version: adopt@1.8
+         sudo apt-get update
       - name: Cache Scala
-        uses: coursier/cache-action@v5
+        uses: coursier/cache-action@v6
+      - name: Setup Scala
+        uses: coursier/setup-action@v1
+        with:
+          jvm: adopt:11
+          apps: sbt mill
+      - name: Setup Dependencies
+        run: |
+          sudo apt-get install ccache
       - name: Initialize submodule
         run: |
           git submodule init
           git submodule update
-#      - name: Workaround for hardfloat
-#        run: sh prephardfloat.sh
       - name: Install Verilator
         run: sudo apt-get install -y verilator gcc
       - name: SBT Test
