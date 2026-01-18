@@ -7,6 +7,8 @@ ThisBuild / organization     := "kzt.me"
 val chiselVersion = "7.6.0"
 val scalatestVersion = "3.2.18"
 
+Test / parallelExecution := false
+
 lazy val root = (project in file("."))
   .settings(
     name := "xskernel-chisel",
