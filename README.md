@@ -15,7 +15,7 @@ SBT is the most common built tool in the Scala community. You can download it [h
 
 #### Verilator
 
-Tested with v5.010. Below is a local build instruction:
+Verilator is required. Below is a local build instruction:
 
 ```bash
 git clone https://github.com/verilator/verilator.git && cd verilator
@@ -26,12 +26,19 @@ make
 make install
 ```
 
+#### Checkout
+
+```bash
+git clone --recurse-submodules https://github.com/hwspec/xslookup-hwacc.git
+```
+
 ### To run tests
 
 ```bash
 $ sbt test
 ```
 
+Note: parallel sbt test is disabled for now.
 
 Please contact Kazutomo Yoshii <kazutomo@anl.gov> if you have any question.
 
