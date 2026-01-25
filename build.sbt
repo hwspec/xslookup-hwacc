@@ -8,6 +8,9 @@ val chiselVersion = "7.6.0"
 val scalatestVersion = "3.2.18"
 
 Test / parallelExecution := false
+// parallel execusion of 'sbt test' of this project might fail.
+// this may be related to java-11
+// with java-17, parallel execusion seems to work.
 
 lazy val root = (project in file("."))
   .settings(
