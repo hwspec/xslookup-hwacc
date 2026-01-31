@@ -41,5 +41,3 @@ $ sbt test
 Note: parallel sbt test is disabled for now.
 
 Please contact Kazutomo Yoshii <kazutomo@anl.gov> if you have any question.
-
-

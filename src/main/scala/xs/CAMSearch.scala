@@ -78,7 +78,7 @@ class CAMSearchFP(n_entries: Int = 225, expW: Int = 8, sigW: Int = 23,
     comperators(i).io.inB := camReg(i)
   }
 
-  val matchVec = VecInit(comperators.map( x => x.io.out_less))
+  val matchVec = VecInit(comperators.map(x => x.io.out_less).toIndexedSeq)
   val matchIndex = PriorityEncoder(matchVec)
 
 
@@ -129,7 +129,7 @@ class CAMSearchFPNoSign(n_entries: Int = 225, expW: Int = 8, sigW: Int = 23,
     comperators(i).io.inB := camReg(i)
   }
 
-  val matchVec = VecInit(comperators.map( x => x.io.out_less))
+  val matchVec = VecInit(comperators.map(x => x.io.out_less).toIndexedSeq)
   val matchIndex = PriorityEncoder(matchVec)
 
 

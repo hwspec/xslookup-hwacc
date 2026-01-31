@@ -1,16 +1,21 @@
 // See README.md for license details.
 
 ThisBuild / scalaVersion     := "2.13.18"
-ThisBuild / version          := "0.4.0"
+ThisBuild / version          := "0.5.0"
 ThisBuild / organization     := "kzt.me"
 
-val chiselVersion = "7.6.0"
+val chiselVersion = "7.7.0"
 val scalatestVersion = "3.2.18"
 
 Test / parallelExecution := false
 // parallel execusion of 'sbt test' of this project might fail.
 // this may be related to java-11
 // with java-17, parallel execusion seems to work.
+
+
+Test / classLoaderLayeringStrategy := ClassLoaderLayeringStrategy.ScalaLibrary
+Test / classLoaderLayeringStrategy := ClassLoaderLayeringStrategy.Flat
+
 
 lazy val root = (project in file("."))
   .settings(
