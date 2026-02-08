@@ -19,7 +19,7 @@ Verilator is required. Below is a local build instruction:
 
 ```bash
 git clone https://github.com/verilator/verilator.git && cd verilator
-git checkout tags/v5.010  -b v5.010build
+git checkout tags/v5.044 -b v5.044build
 autoconf
 ./configure --prefix=__INSTALLDIR__  # replace __INSTALLDIR__
 make
