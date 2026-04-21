@@ -139,7 +139,7 @@ class BinarySearchSpec extends AnyFlatSpec with ChiselSim  {
         c.io.we_table.poke(true)
         for(i <- 0 until n_entries) {
           c.io.addr_table.poke(i)
-          c.io.data_table.poke(Float2BigInt(table(i)))
+          c.io.data_table.poke(Float2BigInt(table(i).toFloat))
           c.clock.step()
         }
         c.io.we_table.poke(false)
@@ -173,13 +173,13 @@ class BinarySearchSpec extends AnyFlatSpec with ChiselSim  {
 
       settable()
 
-      runbinarysearch(minval-1)
-      runbinarysearch(maxval+1)
+      runbinarysearch((minval-1).toFloat)
+      runbinarysearch((maxval+1).toFloat)
 
       for (offset <- -5 until 5)
-        runbinarysearch(maxval/2 + offset)
-      runbinarysearch(minval)
-      runbinarysearch(maxval)
+        runbinarysearch((maxval/2 + offset).toFloat)
+      runbinarysearch(minval.toFloat)
+      runbinarysearch(maxval.toFloat)
     }
   }
 }
