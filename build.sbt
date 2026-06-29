@@ -4,14 +4,13 @@ ThisBuild / scalaVersion     := "2.13.18"
 ThisBuild / version          := "0.5.0"
 ThisBuild / organization     := "kzt.me"
 
-val chiselVersion = "7.11.0"
+val chiselVersion = "7.13.0"
 val scalatestVersion = "3.2.18"
 
 //Test / parallelExecution := false
 // parallel execusion of 'sbt test' of this project might fail.
 // this may be related to java-11
 // with java-17, parallel execusion seems to work.
-
 
 Test / classLoaderLayeringStrategy := ClassLoaderLayeringStrategy.ScalaLibrary
 Test / classLoaderLayeringStrategy := ClassLoaderLayeringStrategy.Flat
@@ -22,6 +21,7 @@ lazy val root = (project in file("."))
     name := "xskernel-chisel",
 
     Compile / unmanagedSourceDirectories ++= Seq(
+      baseDirectory.value / "chisel-axi-utils" / "src" / "main" / "scala",
       baseDirectory.value / "rial-tmpfix" / "src" / "main" / "scala",
       baseDirectory.value / "berkeley-hardfloat" / "hardfloat" / "src" / "main" / "scala"
     ),

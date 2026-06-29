@@ -4,3 +4,6 @@
 [submodule "rial-tmpfix"]
 	path = rial-tmpfix
 	url = https://github.com/hwspec/rial-tmpfix.git
+[submodule "chisel-axi-utils"]
+	path = chisel-axi-utils
+	url = https://github.com/kazutomo/chisel-axi-utils.git
