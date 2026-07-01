@@ -10,15 +10,24 @@ import chisel3.util._
 import chisel3.ExtModule
 
 case class XSModuleParams( // Note: do not put default value here
-                            // params suffixed with _r, _w, or _rw represent addresses
-                            // DefParams
-                            soft_reset_rw : Long,
-                            // module params
-                            const1_r : Long, const2_r : Long,
-                            // constant definition
-                            const1: Long, const2: Long,
-                            reset_cycles : Int, // soft reset cycles
-                          ) extends AxiModuleParams with AxiModuleDefParams
+                           // params suffixed with _r, _w, or _rw represent addresses
+                           // DefParams
+                           soft_reset_rw : Long,
+                           // module params
+                           const1_r : Long, const2_r : Long,
+                           inQCnt : Long,
+                           outQCnt : Long,
+                           startFeed : Long,
+                           fillCAM_rw : Long,
+                           pushInQ_w : Long,
+                           popOutQ_r : Long,
+                           // constant definition
+                           const1: Long, const2: Long,
+                           reset_cycles : Int, // soft reset cycles
+                           // design params
+                           n_entries : Int,
+                           q_len : Int, // for InQ and OutQ
+                         ) extends AxiModuleParams with AxiModuleDefParams
 {
   val moduleName = "XS"
 }
@@ -29,7 +38,14 @@ object XSModuleParams {
   def default(const1: Long, const2: Long) : XSModuleParams =
     new XSModuleParams(
       soft_reset_rw = 0x0, const1_r = 0x10, const2_r = 0x14,
-      const1 = const1, const2 = const2, reset_cycles = 8
+      inQCnt = 0x20, outQCnt = 0x24,
+      startFeed = 0x30,
+      fillCAM_rw = 0x1000,
+      pushInQ_w = 0x2000,
+      popOutQ_r = 0x3000,
+      const1 = const1, const2 = const2, reset_cycles = 8,
+      n_entries = 225,
+      q_len = 64,
     )
 }
 
@@ -58,7 +74,7 @@ class XSAXI(p : XSModuleParams, debugprint: Boolean = false)
 
   val dut = withReset(combinedReset) {
     Module(new CAMSearch(
-      n_entries = 225, expW = 8, sigW = 23,
+      n_entries = p.n_entries,
       debugprint = debugprint
     ))
   }
@@ -68,6 +84,24 @@ class XSAXI(p : XSModuleParams, debugprint: Boolean = false)
   dut.io.updateCam := false.B
   dut.io.camaddr := 0.U
   dut.io.camdata := 0.U
+
+  // test vector
+  val inQ = Module(new Queue(UInt(bw.W), p.q_len))
+  val outQ = Module(new Queue(new CAMRes(), p.q_len))
+  inQ.io.enq.bits := 0.U
+  inQ.io.enq.valid := false.B
+  inQ.io.deq.ready := false.B
+  outQ.io.enq.bits := WireDefault(0.U.asTypeOf(new CAMRes()))
+  outQ.io.enq.valid := false.B
+  outQ.io.deq.ready := false.B
+
+  val inEnableReg = RegInit(false.B)
+
+  dut.io.in.valid := inQ.io.deq.valid && inEnableReg
+  dut.io.in.bits := inQ.io.deq.bits
+  inQ.io.deq.ready := dut.io.in.ready && inEnableReg
+
+  outQ.io.enq <> dut.io.out
 
   // -----------------------------
   // AXI-lite regs
@@ -111,6 +145,12 @@ class XSAXI(p : XSModuleParams, debugprint: Boolean = false)
       resetCounterReg := p.reset_cycles.U
       softResetDoneReg := false.B
       bresp := OKAY.U
+    }.elsewhen(a >= p.fillCAM_rw.U && a < (p.fillCAM_rw + p.n_entries*4).U) {
+      val offset = a - p.fillCAM_rw.U
+      dut.io.updateCam := true.B
+      dut.io.camaddr := offset
+      dut.io.camdata := wHoldDataReg
+      if (debugprint) printf("%d: updateCAM %x at %x\n", cycles, offset, wHoldDataReg)
     }.otherwise {
       brespReg := AxiLiteResp.SLVERR.U
     }

@@ -13,24 +13,23 @@ We recommend LTS releases Java 8 and Java 11. You can install the JDK as recomme
 
 SBT is the most common built tool in the Scala community. You can download it [here](https://www.scala-sbt.org/download.html).  
 
-#### Verilator
-
-Verilator is required. Below is a local build instruction:
-
-```bash
-git clone https://github.com/verilator/verilator.git && cd verilator
-git checkout tags/v5.044 -b v5.044build
-autoconf
-./configure --prefix=__INSTALLDIR__  # replace __INSTALLDIR__
-make
-make install
-```
-
 #### Checkout
 
 ```bash
 git clone --recurse-submodules https://github.com/hwspec/xslookup-hwacc.git
 ```
+
+#### Verilator
+
+Verilator 5.044 is recommended.
+
+To build it locally:
+
+```bash
+sh chisel-axi-utils/misc/build_verilator.sh INSTDIR
+```
+
+NOTE: add INSTDIR/bin to PATH
 
 ### To run tests
 
@@ -38,6 +37,9 @@ git clone --recurse-submodules https://github.com/hwspec/xslookup-hwacc.git
 $ sbt test
 ```
 
-Note: parallel sbt test is disabled for now.
+
+
+
+
 
 Please contact Kazutomo Yoshii <kazutomo@anl.gov> if you have any question.
