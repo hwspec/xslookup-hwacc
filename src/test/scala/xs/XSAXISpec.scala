@@ -5,7 +5,6 @@ import org.scalatest.flatspec.AnyFlatSpec
 import axi._
 import axi.AxiModuleParamsHelper._
 
-
 class XSAXISpec extends AnyFlatSpec with ChiselSim {
   val const1val = 0xbeefcafeL
   val const2val = getGitHash
