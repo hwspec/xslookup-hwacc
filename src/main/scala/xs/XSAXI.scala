@@ -15,12 +15,12 @@ case class XSModuleParams( // Note: do not put default value here
                            soft_reset_rw : Long,
                            // module params
                            const1_r : Long, const2_r : Long,
-                           inQCnt : Long,
-                           outQCnt : Long,
-                           startFeed : Long,
-                           fillCAM_rw : Long,
+                           inQCnt_r : Long,
                            pushInQ_w : Long,
+                           outQCnt_r : Long,
                            popOutQ_r : Long,
+                           startFeed_w : Long,
+                           fillCAM_rw : Long,
                            // constant definition
                            const1: Long, const2: Long,
                            reset_cycles : Int, // soft reset cycles
@@ -38,11 +38,12 @@ object XSModuleParams {
   def default(const1: Long, const2: Long) : XSModuleParams =
     new XSModuleParams(
       soft_reset_rw = 0x0, const1_r = 0x10, const2_r = 0x14,
-      inQCnt = 0x20, outQCnt = 0x24,
-      startFeed = 0x30,
+      inQCnt_r = 0x20,
+      pushInQ_w = 0x24,
+      outQCnt_r = 0x30,
+      popOutQ_r = 0x34,
+      startFeed_w = 0x40,
       fillCAM_rw = 0x1000,
-      pushInQ_w = 0x2000,
-      popOutQ_r = 0x3000,
       const1 = const1, const2 = const2, reset_cycles = 8,
       n_entries = 225,
       q_len = 64,
@@ -85,6 +86,7 @@ class XSAXI(p : XSModuleParams, debugprint: Boolean = false)
   dut.io.camaddr := 0.U
   dut.io.camdata := 0.U
 
+
   // test vector
   val inQ = Module(new Queue(UInt(bw.W), p.q_len))
   val outQ = Module(new Queue(new CAMRes(), p.q_len))
@@ -97,11 +99,16 @@ class XSAXI(p : XSModuleParams, debugprint: Boolean = false)
 
   val inEnableReg = RegInit(false.B)
 
-  dut.io.in.valid := inQ.io.deq.valid && inEnableReg
   dut.io.in.bits := inQ.io.deq.bits
-  inQ.io.deq.ready := dut.io.in.ready && inEnableReg
 
+  dut.io.in.valid := inQ.io.deq.valid && inEnableReg
+  inQ.io.deq.ready := dut.io.in.ready && inEnableReg
   outQ.io.enq <> dut.io.out
+
+  when(inQ.io.count === 0.U && inEnableReg) {
+    inEnableReg := false.B
+    if(debugprint) printf("%d : inQ gets empty; stop feeding\n", cycles)
+  }
 
   // -----------------------------
   // AXI-lite regs
@@ -145,6 +152,14 @@ class XSAXI(p : XSModuleParams, debugprint: Boolean = false)
       resetCounterReg := p.reset_cycles.U
       softResetDoneReg := false.B
       bresp := OKAY.U
+    }.elsewhen(a === p.pushInQ_w.U) {
+      // XXX: not complete because inQ's ready is not checked
+      inQ.io.enq.valid := true.B
+      inQ.io.enq.bits := wHoldDataReg
+      if (debugprint) printf("%d: pushInQ %x\n", cycles, wHoldDataReg)
+    }.elsewhen(a === p.startFeed_w.U) {
+      inEnableReg := true.B
+      if (debugprint) printf("%d: start feeding\n", cycles)
     }.elsewhen(a >= p.fillCAM_rw.U && a < (p.fillCAM_rw + p.n_entries*4).U) {
       val offset = a - p.fillCAM_rw.U
       dut.io.updateCam := true.B
@@ -201,6 +216,18 @@ class XSAXI(p : XSModuleParams, debugprint: Boolean = false)
     }.elsewhen(araddr === p.soft_reset_rw.U) {
       rdataReg := softResetDoneReg
       rstate := RState.COMPLETED
+    }.elsewhen(araddr === p.inQCnt_r.U) {
+      rdataReg := inQ.io.count
+      rstate := RState.COMPLETED
+    }.elsewhen(araddr === p.outQCnt_r.U) {
+      rdataReg := outQ.io.count
+      rstate := RState.COMPLETED
+    }.elsewhen(araddr === p.popOutQ_r.U) {
+      outQ.io.deq.ready := true.B
+      rdataReg := outQ.io.deq.bits.pos
+      rstate := RState.COMPLETED
+      if (debugprint) printf("%d: pop outQ: pos=%d valid=%d\n", cycles,
+        outQ.io.deq.bits.pos, outQ.io.deq.valid)
     }.otherwise {
       if (debugprint) printf("%d: bad read req %d\n", cycles, araddr)
       // rrespReg := SLVERR.U // with this, the host can only read 0xffffffff for any addresses on AVED
