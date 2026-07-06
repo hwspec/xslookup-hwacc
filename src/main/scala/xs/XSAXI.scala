@@ -20,7 +20,7 @@ case class XSModuleParams( // Note: do not put default value here
                            outQCnt_r : Long,
                            popOutQ_r : Long,
                            startFeed_w : Long,
-                           fillCAM_rw : Long,
+                           fillCAM_w : Long,
                            // constant definition
                            const1: Long, const2: Long,
                            reset_cycles : Int, // soft reset cycles
@@ -43,10 +43,10 @@ object XSModuleParams {
       outQCnt_r = 0x30,
       popOutQ_r = 0x34,
       startFeed_w = 0x40,
-      fillCAM_rw = 0x1000,
+      fillCAM_w = 0x1000,
       const1 = const1, const2 = const2, reset_cycles = 8,
       n_entries = 225,
-      q_len = 64,
+      q_len = 256,
     )
 }
 
@@ -85,7 +85,6 @@ class XSAXI(p : XSModuleParams, debugprint: Boolean = false)
   dut.io.updateCam := false.B
   dut.io.camaddr := 0.U
   dut.io.camdata := 0.U
-
 
   // test vector
   val inQ = Module(new Queue(UInt(bw.W), p.q_len))
@@ -160,12 +159,12 @@ class XSAXI(p : XSModuleParams, debugprint: Boolean = false)
     }.elsewhen(a === p.startFeed_w.U) {
       inEnableReg := true.B
       if (debugprint) printf("%d: start feeding\n", cycles)
-    }.elsewhen(a >= p.fillCAM_rw.U && a < (p.fillCAM_rw + p.n_entries*4).U) {
-      val offset = a - p.fillCAM_rw.U
+    }.elsewhen(a >= p.fillCAM_w.U && a < (p.fillCAM_w + p.n_entries*4).U) {
+      val offset = (a - p.fillCAM_w.U) >> 2.U
       dut.io.updateCam := true.B
       dut.io.camaddr := offset
       dut.io.camdata := wHoldDataReg
-      if (debugprint) printf("%d: updateCAM %x at %x\n", cycles, offset, wHoldDataReg)
+      if (debugprint) printf("%d: updateCAM offset=%d data=%x\n", cycles, offset, wHoldDataReg)
     }.otherwise {
       brespReg := AxiLiteResp.SLVERR.U
     }
