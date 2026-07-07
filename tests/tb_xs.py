@@ -1,6 +1,19 @@
 import cocotb
 from axi_test_bridge.cocotb_bridge import COCOTB_Bridge
 
+def binsearch(data, key):
+    left = 0
+    right = len(data) - 1
+
+    while (right - left) > 1:
+        mid = left + (right - left) // 2
+        if data[mid] > key:
+            right = mid
+        else:
+            left = mid
+
+    return left
+
 @cocotb.test()
 async def sim_cmd(cocotb_dut):
     dut = COCOTB_Bridge(cocotb_dut)
@@ -13,16 +26,19 @@ async def sim_cmd(cocotb_dut):
     await dut.expectWord(dut.p.outQCnt_r, 0)
 
     # fill CAM data
-    for i in range(dut.p.n_entries):
-        await dut.writeWord(dut.p.fillCAM_w + i*4, i + 100)
+    data = [x + 100 for x in range(dut.p.n_entries)]
+    skeys = [100, 100+dut.p.n_entries, 200]
+
+    for i, d in enumerate(data):
+        await dut.writeWord(dut.p.fillCAM_w + i*4, d)
 
     # fill in inputQ
-    for i in range(dut.p.n_entries):
-        await dut.writeWord(dut.p.pushInQ_w, i + 100)
+    for k in skeys:
+        await dut.writeWord(dut.p.pushInQ_w, k)
 
     inqlen = await dut.readWord(dut.p.inQCnt_r)
     dut.log.info(f"inqlen = {inqlen}")
-    await dut.expectWord(dut.p.inQCnt_r, dut.p.n_entries)
+    await dut.expectWord(dut.p.inQCnt_r, len(skeys))
 
     # feeding
     await dut.writeWord(dut.p.startFeed_w, 1)
@@ -34,12 +50,16 @@ async def sim_cmd(cocotb_dut):
     # pop Q
     outqlen = await dut.readWord(dut.p.outQCnt_r)
     dut.log.info(f"outqlen = {outqlen}")
+    idx = 0
     while True:
         tmplen = await dut.readWord(dut.p.outQCnt_r)
         if tmplen == 0:
             break
 
         pos = await dut.readWord(dut.p.popOutQ_r)
-        dut.log.info(f"pos={pos}")
+        refpos = binsearch(data, skeys[idx])
+        dut.log.info(f"pos={pos} refpos={refpos}")
+        assert pos == refpos
+        idx += 1
 
     dut.log.info("Done!!\n")
