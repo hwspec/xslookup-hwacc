@@ -1,5 +1,6 @@
 import cocotb
 from axi_test_bridge.cocotb_bridge import COCOTB_Bridge
+import random
 
 def binsearch(data, key):
     left = 0
@@ -25,41 +26,50 @@ async def sim_cmd(cocotb_dut):
     await dut.expectWord(dut.p.inQCnt_r, 0)
     await dut.expectWord(dut.p.outQCnt_r, 0)
 
-    # fill CAM data
-    data = [x + 100 for x in range(dut.p.n_entries)]
-    skeys = [100, 100+dut.p.n_entries, 200]
+    async def testbinsearch(data, skeys):
+        # fill CAM data
+        for i, d in enumerate(data):
+            await dut.writeWord(dut.p.fillCAM_w + i*4, d)
 
-    for i, d in enumerate(data):
-        await dut.writeWord(dut.p.fillCAM_w + i*4, d)
+        # fill in inputQ
+        for k in skeys:
+            await dut.writeWord(dut.p.pushInQ_w, k)
 
-    # fill in inputQ
-    for k in skeys:
-        await dut.writeWord(dut.p.pushInQ_w, k)
+        inqlen = await dut.readWord(dut.p.inQCnt_r)
+        #dut.log.info(f"inqlen = {inqlen}")
+        await dut.expectWord(dut.p.inQCnt_r, len(skeys))
 
-    inqlen = await dut.readWord(dut.p.inQCnt_r)
-    dut.log.info(f"inqlen = {inqlen}")
-    await dut.expectWord(dut.p.inQCnt_r, len(skeys))
+        # feeding
+        await dut.writeWord(dut.p.startFeed_w, 1)
+        while True:
+            tmplen = await dut.readWord(dut.p.inQCnt_r)
+            if tmplen == 0:
+                break
 
-    # feeding
-    await dut.writeWord(dut.p.startFeed_w, 1)
-    while True:
-        tmplen = await dut.readWord(dut.p.inQCnt_r)
-        if tmplen == 0:
-            break
+        # pop Q
+        outqlen = await dut.readWord(dut.p.outQCnt_r)
+        #dut.log.info(f"outqlen = {outqlen}")
+        idx = 0
+        while True:
+            tmplen = await dut.readWord(dut.p.outQCnt_r)
+            if tmplen == 0:
+                break
 
-    # pop Q
-    outqlen = await dut.readWord(dut.p.outQCnt_r)
-    dut.log.info(f"outqlen = {outqlen}")
-    idx = 0
-    while True:
-        tmplen = await dut.readWord(dut.p.outQCnt_r)
-        if tmplen == 0:
-            break
+            pos = await dut.readWord(dut.p.popOutQ_r)
+            refpos = binsearch(data, skeys[idx])
+            #dut.log.info(f"pos={pos} refpos={refpos}")
+            assert pos == refpos
+            idx += 1
 
-        pos = await dut.readWord(dut.p.popOutQ_r)
-        refpos = binsearch(data, skeys[idx])
-        dut.log.info(f"pos={pos} refpos={refpos}")
-        assert pos == refpos
-        idx += 1
+    # test data
+    lowval = 1000
+    delta = 10
+    highval = lowval + dut.p.n_entries * delta
+
+    data = [x for x in range(lowval, highval+1, delta)]
+    nskeys = 20
+    skeys = [random.randint(lowval, highval) for _ in range(nskeys)]
+
+    await testbinsearch(data, skeys)
 
     dut.log.info("Done!!\n")
