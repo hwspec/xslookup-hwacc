@@ -73,40 +73,43 @@ class XSAXI(p : XSModuleParams, debugprint: Boolean = false)
   }
   val combinedReset = (softResetReg || reset.asBool)
 
-  val dut = withReset(combinedReset) {
-    Module(new CAMSearch(
-      n_entries = p.n_entries,
-      debugprint = debugprint
-    ))
-  }
-  dut.io.in.bits := 0.U
-  dut.io.in.valid := false.B
-  dut.io.out.ready := false.B
-  dut.io.updateCam := false.B
-  dut.io.camaddr := 0.U
-  dut.io.camdata := 0.U
+  val (dut, inQ, outQ, inEnableReg) = withReset(combinedReset) {
+    val dut = withReset(combinedReset) {
+      Module(new CAMSearch(
+        n_entries = p.n_entries,
+        debugprint = debugprint
+      ))
+    }
+    dut.io.in.bits := 0.U
+    dut.io.in.valid := false.B
+    dut.io.out.ready := false.B
+    dut.io.updateCam := false.B
+    dut.io.camaddr := 0.U
+    dut.io.camdata := 0.U
 
-  // test vector
-  val inQ = Module(new Queue(UInt(bw.W), p.q_len))
-  val outQ = Module(new Queue(new CAMRes(), p.q_len))
-  inQ.io.enq.bits := 0.U
-  inQ.io.enq.valid := false.B
-  inQ.io.deq.ready := false.B
-  outQ.io.enq.bits := WireDefault(0.U.asTypeOf(new CAMRes()))
-  outQ.io.enq.valid := false.B
-  outQ.io.deq.ready := false.B
+    // test vector
+    val inQ = Module(new Queue(UInt(bw.W), p.q_len))
+    val outQ = Module(new Queue(new CAMRes(), p.q_len))
+    inQ.io.enq.bits := 0.U
+    inQ.io.enq.valid := false.B
+    inQ.io.deq.ready := false.B
+    outQ.io.enq.bits := WireDefault(0.U.asTypeOf(new CAMRes()))
+    outQ.io.enq.valid := false.B
+    outQ.io.deq.ready := false.B
 
-  val inEnableReg = RegInit(false.B)
+    val inEnableReg = RegInit(false.B)
 
-  dut.io.in.bits := inQ.io.deq.bits
+    dut.io.in.bits := inQ.io.deq.bits
 
-  dut.io.in.valid := inQ.io.deq.valid && inEnableReg
-  inQ.io.deq.ready := dut.io.in.ready && inEnableReg
-  outQ.io.enq <> dut.io.out
+    dut.io.in.valid := inQ.io.deq.valid && inEnableReg
+    inQ.io.deq.ready := dut.io.in.ready && inEnableReg
+    outQ.io.enq <> dut.io.out
 
-  when(inQ.io.count === 0.U && inEnableReg) {
-    inEnableReg := false.B
-    if(debugprint) printf("%d : inQ gets empty; stop feeding\n", cycles)
+    when(inQ.io.count === 0.U && inEnableReg) {
+      inEnableReg := false.B
+      if (debugprint) printf("%d : inQ gets empty; stop feeding\n", cycles)
+    }
+    (dut, inQ, outQ, inEnableReg)
   }
 
   // -----------------------------
