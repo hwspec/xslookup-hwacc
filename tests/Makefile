@@ -11,7 +11,8 @@ VERILOG_SOURCES += $(SRCDIR)/user_accel_bd_wrapper.v $(SRCDIR)/*.sv
 VERILOG_SOURCES += $(SRCDIR)/verification/*.sv
 
 WAVES = 1
-EXTRA_ARGS += --trace --trace-structs
+EXTRA_ARGS += --trace --trace-structs --x-assign unique --x-initial unique
+EXTRA_ARGS += +define+RANDOMIZE_REG_INIT +define+RANDOMIZE_MEM_INIT +define+RANDOMIZE_GARBAGE_ASSIGN
 
 test : $(SRCDIR)/$(HWMODULENAME).sv
 	@echo $(VERILOG_SOURCES)
