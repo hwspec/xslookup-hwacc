@@ -57,7 +57,7 @@ async def sim_cmd(cocotb_dut):
 
             pos = await dut.readWord(dut.p.popOutQ_r)
             refpos = binsearch(data, skeys[idx])
-            #dut.log.info(f"pos={pos} refpos={refpos}")
+            dut.log.info(f"pos={pos} refpos={refpos}")
             assert pos == refpos
             idx += 1
 
@@ -68,8 +68,11 @@ async def sim_cmd(cocotb_dut):
 
     data = [x for x in range(lowval, highval+1, delta)]
     nskeys = 20
-    skeys = [random.randint(lowval, highval) for _ in range(nskeys)]
 
+    skeys = [x - 1 for x in range(lowval, highval+delta + 1, delta)]
+    await testbinsearch(data, skeys)
+
+    skeys = [random.randint(lowval, highval) for _ in range(nskeys)]
     await testbinsearch(data, skeys)
 
     dut.log.info("Done!!\n")
