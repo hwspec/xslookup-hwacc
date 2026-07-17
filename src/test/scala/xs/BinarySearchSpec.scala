@@ -34,6 +34,8 @@ object BinarySearchRef {
     var left = 0
     var right = data.length - 1
 
+    // if (ord.lteq(data(right), key)) return right // handle key >= last element
+
     while ((right - left) > 1) {
       val mid = left + (right - left) / 2
       if (debugprint) println(s"low=$left high=$right pos=$mid data=${data(mid)}")
@@ -54,14 +56,18 @@ object BinarySearchRef {
     //val minval = table(0)
     val maxval = table(n_entries - 1)
 
-    val key = maxval/2
-    val pos = BinarySearchRef.search[Int](key, table)
-    val data = table(pos)
-    println(s"int: key=$key pos=$pos data=$data")
+    def runBS(key: Int) : Unit = {
+      val pos = BinarySearchRef.search[Int](key, table, debugprint = true)
+      val data = table(pos)
+      println(s"int: key=$key pos=$pos data=$data")
+    }
+    runBS(maxval + 1)
+
+    // for (key <- Seq(0, maxval/2, maxval+1)) {  runBS(key)   }
 
     val keyfp = (maxval/2).toFloat
     val posfp = BinarySearchRef.search[Float](keyfp, tablefp)
-    val datafp = tablefp(pos)
+    val datafp = tablefp(posfp)
     println(s"fp: key=$keyfp pos=$posfp data=$datafp")
   }
 }

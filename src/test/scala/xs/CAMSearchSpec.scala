@@ -28,13 +28,13 @@ class CAMSearchSpec extends AnyFlatSpec with ChiselSim {
       dut.io.updateCam.poke(false)
       //
       dut.io.in.valid.poke(true)
-      for(k <- Seq(table.head -1, table.head, table(10), table(11), table.last, table.last+1)) {
+      for(k <- Seq(table.head -1, table.head, table(10), table(11), table.last, table.last+1, table.last+2)) {
         dut.io.in.bits.poke(k)
 
         val refpos = BinarySearchRef.search(k, table)
         val pos = dut.io.out.bits.pos.peek().litValue
         val data = dut.io.out.bits.data.peek().litValue
-        // println(s"key=$k pos=$pos data=$data refpos=$refpos")
+        println(s"key=$k pos=$pos data=$data refpos=$refpos")
 
         assert(pos == refpos, s"key=$k pos=$pos data=$data refpos=$refpos")
 

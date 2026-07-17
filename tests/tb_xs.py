@@ -27,6 +27,8 @@ async def sim_cmd(cocotb_dut):
     await dut.expectWord(dut.p.outQCnt_r, 0)
 
     async def testbinsearch(data, skeys):
+        dut.log.info(f"testbinsearch: skeyslen={len(skeys)}")
+
         # fill CAM data
         for i, d in enumerate(data):
             await dut.writeWord(dut.p.fillCAM_w + i*4, d)
@@ -35,9 +37,7 @@ async def sim_cmd(cocotb_dut):
         for k in skeys:
             await dut.writeWord(dut.p.pushInQ_w, k)
 
-        inqlen = await dut.readWord(dut.p.inQCnt_r)
-        #dut.log.info(f"inqlen = {inqlen}")
-        await dut.expectWord(dut.p.inQCnt_r, len(skeys))
+        await dut.expectWord(dut.p.inQCnt_r, len(skeys), f"inqlen did not match with input size: {inqlen} vs {len(skeys)}")
 
         # feeding
         await dut.writeWord(dut.p.startFeed_w, 1)
@@ -69,10 +69,16 @@ async def sim_cmd(cocotb_dut):
     data = [x for x in range(lowval, highval+1, delta)]
     nskeys = 20
 
+
     skeys = [x - 1 for x in range(lowval, highval+delta + 1, delta)]
     await testbinsearch(data, skeys)
 
     skeys = [random.randint(lowval, highval) for _ in range(nskeys)]
     await testbinsearch(data, skeys)
+
+    ntries = 3
+    for _ in range(ntries):
+        await testbinsearch(data, skeys)
+
 
     dut.log.info("Done!!\n")
