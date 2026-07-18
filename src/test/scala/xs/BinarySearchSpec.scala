@@ -51,7 +51,7 @@ object BinarySearchRef {
 
   def main(args: Array[String]) : Unit = {
     val n_entries = 225
-    val table = Array.tabulate(n_entries) { i => i*2 + 1}
+    val table = Array.tabulate(n_entries) { i => i*10 + 1000}
     val tablefp = table.map(x => x.toFloat)
     //val minval = table(0)
     val maxval = table(n_entries - 1)
@@ -59,11 +59,9 @@ object BinarySearchRef {
     def runBS(key: Int) : Unit = {
       val pos = BinarySearchRef.search[Int](key, table, debugprint = true)
       val data = table(pos)
-      println(s"int: key=$key pos=$pos data=$data")
+      println(s"int: key=$key pos=$pos data=$data maxval=$maxval")
     }
-    runBS(maxval + 1)
-
-    // for (key <- Seq(0, maxval/2, maxval+1)) {  runBS(key)   }
+    for (key <- Seq(0, maxval/2, maxval-1)) {  runBS(key)  }
 
     val keyfp = (maxval/2).toFloat
     val posfp = BinarySearchRef.search[Float](keyfp, tablefp)

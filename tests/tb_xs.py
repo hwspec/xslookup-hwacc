@@ -37,6 +37,7 @@ async def sim_cmd(cocotb_dut):
         for k in skeys:
             await dut.writeWord(dut.p.pushInQ_w, k)
 
+        inqlen = await dut.readWord(dut.p.inQCnt_r)
         await dut.expectWord(dut.p.inQCnt_r, len(skeys), f"inqlen did not match with input size: {inqlen} vs {len(skeys)}")
 
         # feeding
@@ -57,7 +58,7 @@ async def sim_cmd(cocotb_dut):
 
             pos = await dut.readWord(dut.p.popOutQ_r)
             refpos = binsearch(data, skeys[idx])
-            dut.log.info(f"pos={pos} refpos={refpos}")
+            dut.log.info(f"key={skeys[idx]} pos={pos} refpos={refpos}")
             assert pos == refpos
             idx += 1
 
@@ -69,8 +70,8 @@ async def sim_cmd(cocotb_dut):
     data = [x for x in range(lowval, highval+1, delta)]
     nskeys = 20
 
-
-    skeys = [x - 1 for x in range(lowval, highval+delta + 1, delta)]
+    # note: the search key should be less than highval
+    skeys = [x - 1 for x in range(lowval, highval, delta)]
     await testbinsearch(data, skeys)
 
     skeys = [random.randint(lowval, highval) for _ in range(nskeys)]
@@ -79,6 +80,5 @@ async def sim_cmd(cocotb_dut):
     ntries = 3
     for _ in range(ntries):
         await testbinsearch(data, skeys)
-
 
     dut.log.info("Done!!\n")
