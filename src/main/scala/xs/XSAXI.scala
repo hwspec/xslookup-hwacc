@@ -20,7 +20,7 @@ case class XSModuleParams( // Note: do not put default value here
                            outQCnt_r : Long,
                            popOutQ_r : Long,
                            startFeed_w : Long,
-                           fillCAM_w : Long,
+                           fillCAM_rw : Long,
                            // constant definition
                            const1: Long, const2: Long,
                            reset_cycles : Int, // soft reset cycles
@@ -43,7 +43,7 @@ object XSModuleParams {
       outQCnt_r = 0x30,
       popOutQ_r = 0x34,
       startFeed_w = 0x40,
-      fillCAM_w = 0x1000,
+      fillCAM_rw = 0x1000,
       const1 = const1, const2 = const2, reset_cycles = 8,
       n_entries = 225,
       q_len = 256,
@@ -83,9 +83,10 @@ class XSAXI(p : XSModuleParams, debugprint: Boolean = false)
     dut.io.in.bits := 0.U
     dut.io.in.valid := false.B
     dut.io.out.ready := false.B
-    dut.io.updateCam := false.B
+    dut.io.writeCam := false.B
+    dut.io.readCam := false.B
     dut.io.camaddr := 0.U
-    dut.io.camdata := 0.U
+    dut.io.camWData := 0.U
 
     // test vector
     val inQ = Module(new Queue(UInt(bw.W), p.q_len))
@@ -162,12 +163,12 @@ class XSAXI(p : XSModuleParams, debugprint: Boolean = false)
     }.elsewhen(a === p.startFeed_w.U) {
       inEnableReg := true.B
       if (debugprint) printf("%d: start feeding\n", cycles)
-    }.elsewhen(a >= p.fillCAM_w.U && a < (p.fillCAM_w + p.n_entries*4).U) {
-      val offset = (a - p.fillCAM_w.U) >> 2.U
-      dut.io.updateCam := true.B
+    }.elsewhen(a >= p.fillCAM_rw.U && a < (p.fillCAM_rw + p.n_entries*4).U) {
+      val offset = (a - p.fillCAM_rw.U) >> 2.U
+      dut.io.writeCam := true.B
       dut.io.camaddr := offset
-      dut.io.camdata := wHoldDataReg
-      if (debugprint) printf("%d: updateCAM offset=%d data=%x\n", cycles, offset, wHoldDataReg)
+      dut.io.camWData := wHoldDataReg
+      if (debugprint) printf("%d: writeCAM offset=%d data=%x\n", cycles, offset, wHoldDataReg)
     }.otherwise {
       brespReg := AxiLiteResp.SLVERR.U
     }
@@ -230,6 +231,13 @@ class XSAXI(p : XSModuleParams, debugprint: Boolean = false)
       rstate := RState.COMPLETED
       if (debugprint) printf("%d: pop outQ: pos=%d valid=%d\n", cycles,
         outQ.io.deq.bits.pos, outQ.io.deq.valid)
+    }.elsewhen(araddr >= p.fillCAM_rw.U && araddr < (p.fillCAM_rw + p.n_entries*4).U) {
+      val offset = (araddr - p.fillCAM_rw.U) >> 2.U
+      dut.io.readCam := true.B
+      dut.io.camaddr := offset
+      rdataReg := dut.io.camRData
+      rstate := RState.COMPLETED
+      if (debugprint) printf("%d: readCAM offset=%d data=%x\n", cycles, offset, dut.io.camRData)
     }.otherwise {
       if (debugprint) printf("%d: bad read req %d\n", cycles, araddr)
       // rrespReg := SLVERR.U // with this, the host can only read 0xffffffff for any addresses on AVED

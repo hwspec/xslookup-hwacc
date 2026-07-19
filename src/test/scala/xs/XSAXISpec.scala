@@ -10,6 +10,7 @@ class XSAXISpec extends AnyFlatSpec with ChiselSim {
   val const2val = getGitHash
   val p = XSModuleParams.default(const1val, const2val)
 
+
   "basictest" should "pass" in {
     simulate(new XSAXI(p, debugprint = true)) { dut =>
       val bfm = new Axi4Lite32BFM[XSAXI](dut)
@@ -18,6 +19,15 @@ class XSAXISpec extends AnyFlatSpec with ChiselSim {
       bfm.expectVal(p.const1_r, const1val)
       bfm.expectVal(p.const2_r, const2val)
 
+      val n_entries = 225
+      val table = Array.tabulate(n_entries) { i => i*2 + 1}
+
+      for (i <- 0 until n_entries) {
+        bfm.writeVal(p.fillCAM_rw + i*4, table(i))
+      }
+      for (i <- 0 until n_entries) {
+        bfm.expectVal(p.fillCAM_rw + i*4, table(i))
+      }
     }
   }
 }

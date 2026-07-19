@@ -23,14 +23,20 @@ class CAMSearch(n_entries: Int = 225, expW: Int = 8, sigW: Int = 23,
     val in = Flipped(Decoupled(UInt(bwdata.W)))
     val out = Decoupled(new CAMRes(bwpos, bwdata))
     // update the table
-    val updateCam = Input(Bool())
+    val writeCam = Input(Bool())
+    val readCam = Input(Bool())
     val camaddr = Input(UInt(log2Ceil(n_entries).W))
-    val camdata = Input(UInt(bwdata.W))
+    val camWData = Input(UInt(bwdata.W))
+    val camRData = Output(UInt(bwdata.W))
   })
 
   val camReg = RegInit(VecInit(Seq.fill(n_entries)(0.U(bwdata.W))))
-  when(io.updateCam) {
-    camReg(io.camaddr) := io.camdata
+  when(io.writeCam) {
+    camReg(io.camaddr) := io.camWData
+  }
+  io.camRData := 0.U
+  when(io.readCam) {
+    io.camRData := camReg(io.camaddr)
   }
 
   val matchVec = VecInit(camReg.map(x => io.in.bits < x))
@@ -62,14 +68,20 @@ class CAMSearchFP(n_entries: Int = 225, expW: Int = 8, sigW: Int = 23,
     val in = Flipped(Decoupled(UInt(bwdata.W)))
     val out = Decoupled(new CAMRes(bwpos, bwdata))
     // update the table
-    val updateCam = Input(Bool())
+    val writeCam = Input(Bool())
+    val readCam = Input(Bool())
     val camaddr = Input(UInt(log2Ceil(n_entries).W))
-    val camdata = Input(UInt(bwdata.W))
+    val camWData = Input(UInt(bwdata.W))
+    val camRData = Output(UInt(bwdata.W))
   })
 
   val camReg = RegInit(VecInit(Seq.fill(n_entries)(0.U(bwdata.W))))
-  when(io.updateCam) {
-    camReg(io.camaddr) := io.camdata
+  when(io.writeCam) {
+    camReg(io.camaddr) := io.camWData
+  }
+  io.camRData := 0.U
+  when(io.readCam) {
+    io.camRData := camReg(io.camaddr)
   }
 
   val comperators = Array.tabulate(n_entries) { _ => Module(new FPComparatorLT(expW, sigW))}

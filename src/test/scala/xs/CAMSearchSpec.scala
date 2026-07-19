@@ -19,13 +19,23 @@ class CAMSearchSpec extends AnyFlatSpec with ChiselSim {
 
   "basictest: Integer" should "pass" in {
     simulate(new CAMSearch()) { dut =>
-      dut.io.updateCam.poke(true)
+      dut.io.writeCam.poke(true)
       for(i <- 0 until n_entries) {
         dut.io.camaddr.poke(i)
-        dut.io.camdata.poke(table(i))
+        dut.io.camWData.poke(table(i))
         dut.clock.step()
       }
-      dut.io.updateCam.poke(false)
+      dut.io.writeCam.poke(false)
+
+      // verify
+      dut.io.readCam.poke(true)
+      for(i <- 0 until n_entries) {
+        dut.io.camaddr.poke(i)
+        dut.io.camRData.expect(table(i))
+        dut.clock.step()
+      }
+      dut.io.readCam.poke(false)
+
       //
       dut.io.in.valid.poke(true)
       for(k <- Seq(table.head -1, table.head, table(10), table(11), table.last, table.last+1, table.last+2)) {
@@ -46,13 +56,13 @@ class CAMSearchSpec extends AnyFlatSpec with ChiselSim {
 
   "basictest: FP" should "pass" in {
     simulate(new CAMSearchFP()) { dut =>
-      dut.io.updateCam.poke(true)
+      dut.io.writeCam.poke(true)
       for(i <- 0 until n_entries) {
         dut.io.camaddr.poke(i)
-        dut.io.camdata.poke(Float2BigInt(tablefp(i)))
+        dut.io.camWData.poke(Float2BigInt(tablefp(i)))
         dut.clock.step()
       }
-      dut.io.updateCam.poke(false)
+      dut.io.writeCam.poke(false)
       //
       dut.io.in.valid.poke(true)
       for(k <- Seq(tablefp.head - 1f, tablefp.head, tablefp(10), tablefp(11), tablefp.last, tablefp.last+1f)) {

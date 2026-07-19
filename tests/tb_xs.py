@@ -31,7 +31,13 @@ async def sim_cmd(cocotb_dut):
 
         # fill CAM data
         for i, d in enumerate(data):
-            await dut.writeWord(dut.p.fillCAM_w + i*4, d)
+            await dut.writeWord(dut.p.fillCAM_rw + i*4, d)
+
+        # verify CAM data
+        for i, d in enumerate(data):
+            tmp = await dut.readWord(dut.p.fillCAM_rw + i*4)
+            dut.log.info(f"cam: {i} {tmp} ref:{d}")
+#            assert tmp == d
 
         # fill in inputQ
         for k in skeys:
