@@ -36,8 +36,8 @@ async def sim_cmd(cocotb_dut):
         # verify CAM data
         for i, d in enumerate(data):
             tmp = await dut.readWord(dut.p.fillCAM_rw + i*4)
-            dut.log.info(f"cam: {i} {tmp} ref:{d}")
-#            assert tmp == d
+#            dut.log.info(f"cam: {i} {tmp} ref:{d}")
+            assert tmp == d
 
         # fill in inputQ
         for k in skeys:
@@ -73,7 +73,7 @@ async def sim_cmd(cocotb_dut):
     delta = 10
     highval = lowval + dut.p.n_entries * delta
 
-    data = [x for x in range(lowval, highval+1, delta)]
+    data = [x for x in range(lowval, highval, delta)]
     nskeys = 20
 
     # note: the search key should be less than highval
