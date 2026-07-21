@@ -26,9 +26,7 @@ async def sim_cmd(cocotb_dut):
     await dut.expectWord(dut.p.inQCnt_r, 0)
     await dut.expectWord(dut.p.outQCnt_r, 0)
 
-    async def testbinsearch(data, skeys):
-        dut.log.info(f"testbinsearch: skeyslen={len(skeys)}")
-
+    async def fillCAM(data):
         # fill CAM data
         for i, d in enumerate(data):
             await dut.writeWord(dut.p.fillCAM_rw + i*4, d)
@@ -36,8 +34,10 @@ async def sim_cmd(cocotb_dut):
         # verify CAM data
         for i, d in enumerate(data):
             tmp = await dut.readWord(dut.p.fillCAM_rw + i*4)
-#            dut.log.info(f"cam: {i} {tmp} ref:{d}")
             assert tmp == d
+
+    async def testbinsearch(data, skeys):
+        dut.log.info(f"testbinsearch: skeyslen={len(skeys)}")
 
         # fill in inputQ
         for k in skeys:
@@ -68,23 +68,19 @@ async def sim_cmd(cocotb_dut):
             assert pos == refpos
             idx += 1
 
-    # test data
+    # set up CAM
     lowval = 1000
     delta = 10
     highval = lowval + dut.p.n_entries * delta
-
     data = [x for x in range(lowval, highval, delta)]
-    nskeys = 20
+    await fillCAM(data)
 
     # note: the search key should be less than highval
     skeys = [x - 1 for x in range(lowval, highval, delta)]
     await testbinsearch(data, skeys)
 
+    nskeys = 20
     skeys = [random.randint(lowval, highval) for _ in range(nskeys)]
     await testbinsearch(data, skeys)
-
-    ntries = 3
-    for _ in range(ntries):
-        await testbinsearch(data, skeys)
 
     dut.log.info("Done!!\n")
