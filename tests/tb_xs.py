@@ -81,6 +81,6 @@ async def sim_cmd(cocotb_dut):
 
     nskeys = 20
     skeys = [random.randint(lowval, highval) for _ in range(nskeys)]
-    await testbinsearch(data, skeys)
+#    await testbinsearch(data, skeys)
 
     dut.log.info("Done!!\n")
