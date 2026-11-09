@@ -4,7 +4,7 @@ ThisBuild / scalaVersion     := "2.13.18"
 ThisBuild / version          := "0.5.0"
 ThisBuild / organization     := "kzt.me"
 
-val chiselVersion = "7.13.0"
+val chiselVersion = "7.16.0"
 val scalatestVersion = "3.2.18"
 
 //Test / parallelExecution := false
